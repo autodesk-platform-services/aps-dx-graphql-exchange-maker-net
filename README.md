@@ -37,7 +37,6 @@ An IFC file: check IFC classes, or add the elements selected in the Viewer.
 - **APS account**: [create an app](https://aps.autodesk.com/myapps) with the callback URL `http://localhost:8082/api/auth/callback`, with access to the Data Management, Model Derivative and Data Exchange APIs.
 - The app's client ID added as a **custom integration** in your ACC account ([instructions](https://get-started.aps.autodesk.com/#provision-access-in-other-products)).
 - For Revit cloud models: the [AEC Data Model enabled](https://aps.autodesk.com/en/docs/aecdatamodel/v1/developers_guide/onboarding/) for the hub, with models published from Revit 2024 or later.
-- The used client id needs to be provisioned as [described here](https://get-started.aps.autodesk.com/#provision-access-in-other-products)
 
 ## Running locally
 
