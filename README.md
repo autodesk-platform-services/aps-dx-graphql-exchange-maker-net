@@ -48,7 +48,7 @@ The Viewer and the Data Exchange API need a 3-legged token, so you sign in throu
 ```bash
 export APS_CLIENT_ID="your client ID"
 export APS_CLIENT_SECRET="your client secret"
-export APS_CALLBACK_URL="http://localhost:8082/api/auth/callback"
+export APS_CALLBACK_URL="http://localhost:8080/api/auth/callback"
 ```
 
 ### 2. Run the app
@@ -60,28 +60,27 @@ dotnet run
 
 ### 3. Open the app
 
-Open [http://localhost:8082](http://localhost:8082), log in, and pick a design version in the tree. Open the **Exchange Maker** panel with its toolbar button, make your choices, and click **Create exchange**. When the exchange is created, it shows up in the tree next to the source design and can be opened in the Viewer (use **Refresh** to reload the tree).
+Open [http://localhost:8080](http://localhost:8080), log in, and pick a design version in the tree. Open the **Exchange Maker** panel with its toolbar button, make your choices, and click **Create exchange**. When the exchange is created, it shows up in the tree next to the source design and can be opened in the Viewer (use **Refresh** to reload the tree).
 
-The default port is 8082 (see `WebApp/Properties/launchSettings.json`). The sibling samples use 8080 (Exchange Monitor) and 8081 (Exchange Creator), so the three can run together.
+The default port is 8080, but you can change it in `WebApp/Properties/launchSettings.json`and it is important to match the port used in the callback url.
 
 ## Known issues
 
-- **The latest version is used.** Exchanges are always created from the latest version of the source file. The panel warns when an older version is open.
-- **Revit files: only published views.** ACC only extracts the views listed in the file's publish settings, and Data Exchange can only use extracted views. The [Exchange Creator](../01.EchangeCreator) sample creates an exchange from any set of elements.
-- **Revit 2024 files:** exchanges from Revit 2024 files never completed in the tests of the Exchange Creator sample. The panel shows a warning for them.
+- **Exchange names** must be unique in the folder.
+- **Exchanges are always created from the latest version of the source file.** The panel warns when an older version is open.
+- **Revit files: only published views.** ACC only extracts the views listed in the file's publish settings, and Data Exchange can only use extracted views. The [Exchange Creator](https://github.com/autodesk-platform-services/aps-dx-graphql-exchange-creator-net) sample creates an exchange from any set of elements.
 - **AEC Data Model filters pick whole categories, families or types**, never individual elements.
 - **ACC previews a filter-based exchange with the views of its source model.** The exchange's data is still filtered; the panel shows what the exchange contains (counts per category) and can isolate its elements in the Viewer.
 - **IFC properties** are named differently depending on how the IFC file was translated. If no IFC class is found, type the filter by hand.
-- **Exchange names** must be unique in the folder.
 
-More in [internal_README.md](./internal_README.md#notes-and-limitations).
+
 
 ## Further reading
 
-- [Detailed documentation](./internal_README.md) and [project layout and code guide](./other_info.md)
-- [Exchange Creator](../01.EchangeCreator): creates an exchange from a selection of elements
-- [Exchange Monitor](../02.ExchangeWatcher/sample): watches a Revit file with a webhook and shows what changed in an exchange
-- [APS Data Exchange GraphQL tutorial](https://autodesk-platform-services.github.io/aps-dx-graphql-tutorial/)
+- [APS Data Exchange GraphQL tutorial](https://autodesk-platform-services.github.io/aps-dx-graphql-tutorial/)  
+- [Exchange Creator](https://github.com/autodesk-platform-services/aps-dx-graphql-exchange-creator-net): creates an exchange from a selection of elements
+- [Exchange Monitor](https://github.com/autodesk-platform-services/aps-dx-graphql-exchange-monitor-net): watches a Revit file with a webhook and shows what changed in an exchange
+
 
 ## License
 
