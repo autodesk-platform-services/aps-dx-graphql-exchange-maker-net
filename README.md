@@ -33,8 +33,8 @@ An IFC file: check IFC classes, or add the elements selected in the Viewer.
 
 ## Dependencies
 
-- **[.NET 8 SDK](https://dotnet.microsoft.com/download)**
-- **APS account**: [create an app](https://aps.autodesk.com/myapps) with the callback URL `http://localhost:8082/api/auth/callback`, with access to the Data Management, Model Derivative and Data Exchange APIs.
+- **[.NET 9 SDK](https://dotnet.microsoft.com/download)**
+- **APS account**: [create an app](https://aps.autodesk.com/myapps) with the callback URL `http://localhost:8080/api/auth/callback`, with access to the Data Management, Model Derivative and Data Exchange APIs.
 - The app's client ID added as a **custom integration** in your ACC account ([instructions](https://get-started.aps.autodesk.com/#provision-access-in-other-products)).
 - For Revit cloud models: the [AEC Data Model enabled](https://aps.autodesk.com/en/docs/aecdatamodel/v1/developers_guide/onboarding/) for the hub, with models published from Revit 2024 or later.
 
@@ -44,16 +44,32 @@ The Viewer and the Data Exchange API need a 3-legged token, so you sign in throu
 
 ### 1. Set the APS credentials
 
+Fill in `appsettings.Development.json`:
+
+```json
+{
+  "APS_CLIENT_ID": "your client ID",
+  "APS_CLIENT_SECRET": "your client secret",
+  "APS_CALLBACK_URL": "http://localhost:8080/api/auth/callback",
+  "AppSettings": {
+    "AppUrl": "http://localhost:8080"
+  }
+}
+```
+
+Don't commit the file with your credentials. You can also use environment variables instead, which take precedence over the file:
+
 ```bash
 export APS_CLIENT_ID="your client ID"
 export APS_CLIENT_SECRET="your client secret"
 export APS_CALLBACK_URL="http://localhost:8080/api/auth/callback"
 ```
 
+The nested form also works, for example `Aps__ClientId`, `Aps__ClientSecret` and `Aps__RedirectUri`.
+
 ### 2. Run the app
 
 ```bash
-cd WebApp
 dotnet run
 ```
 
@@ -61,7 +77,28 @@ dotnet run
 
 Open [http://localhost:8080](http://localhost:8080), log in, and pick a design version in the tree. Open the **Exchange Maker** panel with its toolbar button, make your choices, and click **Create exchange**. When the exchange is created, it shows up in the tree next to the source design and can be opened in the Viewer (use **Refresh** to reload the tree).
 
-The default port is 8080, but you can change it in `WebApp/Properties/launchSettings.json`and it is important to match the port used in the callback url.
+The default port is 8080. You can change it in `Properties/launchSettings.json`, but the callback URL must use the same port.
+
+## Deploying to Dokku
+
+The project file (`ExchangeMaker.csproj`) is at the root of the repository, so the Dokku .NET buildpack detects and publishes the app without extra configuration. When Dokku sets `PORT`, the app listens on it and reads the scheme from the headers of Dokku's nginx proxy.
+
+Set the APS credentials as config vars (in Dokku Admin, or with `dokku config:set`):
+
+| Variable | Example |
+|----------|---------|
+| `APS_CLIENT_ID` | your client ID |
+| `APS_CLIENT_SECRET` | your client secret |
+| `APS_CALLBACK_URL` | `https://your-app.example.com/api/auth/callback` (optional) |
+| `Aps__BehindProxy` | `true` (optional: forwarded headers are already trusted when `PORT` is set) |
+
+If `APS_CALLBACK_URL` isn't set, or still points to `localhost`, the app builds the callback URL from `AppSettings__AppUrl` or from the host of the request, for example `https://your-app.example.com/api/auth/callback`.
+
+Register the callback URL in your [APS app](https://aps.autodesk.com/myapps). It must match exactly, including `https`. Don't commit the credentials: keep them in the config vars only.
+
+### Sign-in troubleshooting
+
+If Autodesk shows an error page instead of the sign-in after you click **Login**, the callback URL doesn't match the APS app. Check the Dokku logs for `Starting APS OAuth login with redirect_uri=...`, and register that exact value in your APS app.
 
 ## Known issues
 

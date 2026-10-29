@@ -7,16 +7,17 @@ using Autodesk.Authentication.Model;
 
 public partial class APS
 {
-    public string GetAuthorizationURL()
+    // The callback URL depends on the request (see OAuthRedirectUriResolver), and must be the same in both calls
+    public string GetAuthorizationURL(string callbackUri)
     {
         var authenticationClient = new AuthenticationClient();
-        return authenticationClient.Authorize(_clientId, ResponseType.Code, _callbackUri, InternalTokenScopes);
+        return authenticationClient.Authorize(_clientId, ResponseType.Code, callbackUri, InternalTokenScopes);
     }
 
-    public async Task<Tokens> GenerateTokens(string code)
+    public async Task<Tokens> GenerateTokens(string code, string callbackUri)
     {
         var authenticationClient = new AuthenticationClient();
-        var internalAuth = await authenticationClient.GetThreeLeggedTokenAsync(_clientId, code, _callbackUri, clientSecret: _clientSecret);
+        var internalAuth = await authenticationClient.GetThreeLeggedTokenAsync(_clientId, code, callbackUri, clientSecret: _clientSecret);
         var publicAuth = await authenticationClient.RefreshTokenAsync(internalAuth.RefreshToken, _clientId, clientSecret: _clientSecret, scopes: PublicTokenScopes);
         return new Tokens
         {

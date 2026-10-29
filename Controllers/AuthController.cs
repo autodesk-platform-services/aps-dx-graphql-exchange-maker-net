@@ -12,10 +12,14 @@ using Microsoft.Extensions.Logging;
 public class AuthController : ControllerBase
 {
     private readonly APS _aps;
+    private readonly OAuthRedirectUriResolver _redirectUri;
+    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(APS aps)
+    public AuthController(APS aps, OAuthRedirectUriResolver redirectUri, ILogger<AuthController> logger)
     {
         _aps = aps;
+        _redirectUri = redirectUri;
+        _logger = logger;
     }
 
     public static async Task<Tokens> PrepareTokens(HttpRequest request, HttpResponse response, APS aps)
@@ -91,8 +95,10 @@ public class AuthController : ControllerBase
     [HttpGet("login")]
     public ActionResult Login()
     {
-        var redirectUri = _aps.GetAuthorizationURL();
-        return Redirect(redirectUri);
+        var callbackUri = _redirectUri.Resolve(Request);
+        // Must match a callback URL registered in the APS app, otherwise Autodesk shows an error page instead of the sign-in
+        _logger.LogInformation("Starting APS OAuth login with redirect_uri={CallbackUri}", callbackUri);
+        return Redirect(_aps.GetAuthorizationURL(callbackUri));
     }
 
     [HttpGet("logout")]
@@ -105,7 +111,7 @@ public class AuthController : ControllerBase
     [HttpGet("callback")]
     public async Task<ActionResult> Callback(string code)
     {
-        var tokens = await _aps.GenerateTokens(code);
+        var tokens = await _aps.GenerateTokens(code, _redirectUri.Resolve(Request));
         SetTokenCookies(Response, tokens);
         return Redirect("/");
     }
