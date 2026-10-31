@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -14,12 +15,14 @@ public class AuthController : ControllerBase
     private readonly APS _aps;
     private readonly OAuthRedirectUriResolver _redirectUri;
     private readonly ILogger<AuthController> _logger;
+    private readonly ApsOptions _apsOptions;
 
-    public AuthController(APS aps, OAuthRedirectUriResolver redirectUri, ILogger<AuthController> logger)
+    public AuthController(APS aps, OAuthRedirectUriResolver redirectUri, ILogger<AuthController> logger, IOptions<ApsOptions> apsOptions)
     {
         _aps = aps;
         _redirectUri = redirectUri;
         _logger = logger;
+        _apsOptions = apsOptions.Value;
     }
 
     public static async Task<Tokens> PrepareTokens(HttpRequest request, HttpResponse response, APS aps)
@@ -99,6 +102,14 @@ public class AuthController : ControllerBase
         // Must match a callback URL registered in the APS app, otherwise Autodesk shows an error page instead of the sign-in
         _logger.LogInformation("Starting APS OAuth login with redirect_uri={CallbackUri}", callbackUri);
         return Redirect(_aps.GetAuthorizationURL(callbackUri));
+    }
+
+    // The client ID to provision in the ACC account (shown by the help dialog). Public, so it works before signing in;
+    // the client ID isn't a secret, it is also in every sign-in URL.
+    [HttpGet("client")]
+    public ActionResult GetClient()
+    {
+        return Ok(new { clientId = _apsOptions.ClientId });
     }
 
     [HttpGet("logout")]
